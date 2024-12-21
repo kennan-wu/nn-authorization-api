@@ -1,7 +1,5 @@
 package com.kennan.mp3player.mp3_player_api.dto;
 
-import com.kennan.mp3player.mp3_player_api.model.User;
-
 import lombok.Getter;
 import lombok.Setter;
 
