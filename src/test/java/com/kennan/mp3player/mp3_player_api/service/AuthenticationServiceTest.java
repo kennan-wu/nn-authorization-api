@@ -81,7 +81,7 @@ public class AuthenticationServiceTest {
         returnedUser.setUsername("testUser");
         returnedUser.setPassword("encodedPassword");
 
-        when(userRepositoryMock.findByUsername(input.getEmail())).thenReturn(Optional.of(returnedUser));
+        when(userRepositoryMock.findByEmail(input.getEmail())).thenReturn(Optional.of(returnedUser));
 
         User result = authenticationService.authenticate(input);
 
@@ -91,7 +91,7 @@ public class AuthenticationServiceTest {
         verify(authenticationManagerMock, times(1))
             .authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepositoryMock, times(1))
-            .findByUsername("test@example.com");
+            .findByEmail("test@example.com");
     }
 
     @Test
@@ -99,7 +99,7 @@ public class AuthenticationServiceTest {
         LoginUserDTO input = new LoginUserDTO();
         input.setEmail("test@example.com");
 
-        when(userRepositoryMock.findByUsername(input.getEmail())).thenReturn(Optional.empty());
+        when(userRepositoryMock.findByEmail(input.getEmail())).thenReturn(Optional.empty());
 
         assertThrows(NoSuchElementException.class, () -> {
             authenticationService.authenticate(input);
@@ -108,6 +108,6 @@ public class AuthenticationServiceTest {
         verify(authenticationManagerMock, times(1))
             .authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepositoryMock, times(1))
-            .findByUsername("test@example.com");
+            .findByEmail("test@example.com");
     }
 }

@@ -39,11 +39,11 @@ public class AuthenticationService {
         authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 input.getEmail(),
-                input.getPassword() 
+                input.getPassword()
             )
         );
 
-        return userRepository.findByUsername(input.getEmail())
+        return userRepository.findByEmail(input.getEmail())
             .orElseThrow();
     }
 }
