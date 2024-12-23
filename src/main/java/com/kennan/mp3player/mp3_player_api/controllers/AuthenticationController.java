@@ -1,6 +1,5 @@
 package com.kennan.mp3player.mp3_player_api.controllers;
 
-import org.springframework.data.mongodb.repository.ReadPreference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

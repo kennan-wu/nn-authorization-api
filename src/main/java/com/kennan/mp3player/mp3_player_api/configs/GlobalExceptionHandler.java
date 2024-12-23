@@ -1,5 +1,7 @@
 package com.kennan.mp3player.mp3_player_api.configs;
 
+import java.util.NoSuchElementException;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,8 +26,8 @@ public class GlobalExceptionHandler {
             .body(exception.getMessage());
     }
 
-    @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<String> handleUsernameNotFoundException(UsernameNotFoundException exception) {
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException exception) {
         return ResponseEntity
             .status(HttpStatus.CONFLICT)
             .body(exception.getMessage());
