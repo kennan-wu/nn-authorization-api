@@ -27,6 +27,10 @@ public class AuthenticationService {
         }
 
     public User signup(RegisterUserDTO input) {
+        if (userRepository.existsByEmail(input.getEmail())) {
+            throw new IllegalArgumentException("Email is already in use");
+        }
+
         User user = new User();
         user.setEmail(input.getEmail());
         user.setUsername(input.getUsername());
