@@ -54,7 +54,11 @@ public class AuthenticationControllerTest {
         loginUserDTO.setEmail("test@example.com");
         loginUserDTO.setPassword("password");
 
-        testUser = new User("1", "testUser", "test@example.com", "password");
+        testUser = User.builder()
+            .email("test@example.com")
+            .username("testUser")
+            .password("password")
+            .build();
     }
 
     @Test

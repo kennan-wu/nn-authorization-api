@@ -30,11 +30,14 @@ public class AuthenticationService {
         if (userRepository.existsByEmail(input.getEmail())) {
             throw new IllegalArgumentException("Email is already in use");
         }
-
-        User user = new User();
-        user.setEmail(input.getEmail());
-        user.setUsername(input.getUsername());
-        user.setPassword(passwordEncoder.encode(input.getPassword()));
+        
+        User user = User.builder()
+            .email(input.getEmail())
+            .username(input.getUsername())
+            .password(passwordEncoder.encode(input.getPassword()))
+            .oauthProvider(input.getOauthProvider())
+            .oauthId(input.getOauthId())
+            .build();
 
         return userRepository.save(user);
     }

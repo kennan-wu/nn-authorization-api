@@ -62,7 +62,11 @@ public class JwtAuthenticationFilterTest {
             userDetailsServiceMock, 
             handlerExceptionResolverMock
         );
-        User user = new User("1", "testUser", "test@example.com", "password");
+        User user = User.builder()
+            .email("test@example.com")
+            .username("testUser")
+            .password("password")
+            .build();
         testUser = user;
         SecurityContextHolder.setContext(securityContextMock);
     }

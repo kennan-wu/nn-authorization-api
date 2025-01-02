@@ -9,4 +9,7 @@ public class RegisterUserDTO {
     private String email;
     private String password;
     private String username;
+
+    private String oauthProvider = null;
+    private String oauthId = null;
 }

@@ -27,7 +27,11 @@ public class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        User user = new User("1", "testUser", "test@example.com", "password");
+        User user = User.builder()
+            .email("test@example.com")
+            .username("testUser")
+            .password("password")
+            .build();
         testUser = user;
 
         String token = jwtService.generateToken(user);
@@ -61,7 +65,11 @@ public class JwtServiceTest {
 
     @Test
     void testIsTokenInalidWithAnotherUser() {
-        User anotherUser = new User("2", "anotherTestUser", "anotherUser@example.com", "anotherPassword");
+        User anotherUser = User.builder()
+            .email("another@example.com")
+            .username("anotherUser")
+            .password("anotherPassword")
+            .build();
         boolean isValid = jwtService.isTokenValid(testToken, anotherUser);
         assertFalse(isValid);
     }

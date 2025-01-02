@@ -14,18 +14,23 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.kennan.mp3player.mp3_player_api.service.OAuth2Service;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final OAuth2Service oAuth2Service;
 
     public SecurityConfiguration(
         JwtAuthenticationFilter jwtAuthenticationFilter,
-        AuthenticationProvider authenticationProvider
+        AuthenticationProvider authenticationProvider,
+        OAuth2Service oAuth2Service
     ) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
+        this.oAuth2Service = oAuth2Service;
     }
 
     @Bean
@@ -35,6 +40,14 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated()
+            )
+            // .oauth2Login(oauth2 -> oauth2
+            //     .userInfoEndpoint(userInfo -> userInfo
+            //         .userService(oAuth2Service)
+            //     )
+            // )
+            .oauth2ResourceServer(oauth2 -> oauth2
+                .jwt(_ -> {})
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
