@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
@@ -31,7 +32,11 @@ public class JwtDecoderConfigTest {
     }
 
     @Bean
-    public JwtService jwtService(NimbusJwtDecoder mockGoogleJwtDecoder, NimbusJwtDecoder jwtDecoder) {
-        return new JwtService(mockGoogleJwtDecoder, jwtDecoder);
+    public JwtService jwtService(
+        NimbusJwtDecoder mockGoogleJwtDecoder, 
+        NimbusJwtDecoder jwtDecoder, 
+        RedisTemplate<String, String> redisTemplate
+    ) {
+        return new JwtService(mockGoogleJwtDecoder, jwtDecoder, redisTemplate);
     }
 }

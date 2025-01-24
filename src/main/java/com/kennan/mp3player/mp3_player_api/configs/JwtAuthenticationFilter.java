@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
+import com.kennan.mp3player.mp3_player_api.service.CookieService;
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
 
 import jakarta.servlet.FilterChain;
@@ -39,42 +40,37 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
     @Override
     protected void doFilterInternal(
-        @NonNull HttpServletRequest request,
-        @NonNull HttpServletResponse response,
+        @NonNull HttpServletRequest request, 
+        @NonNull HttpServletResponse response, 
         @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-
-        if (authHeader == null|| !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        final String idToken = CookieService.getCookieValue(request, "id_token");
 
         try {
-            final String jwt = authHeader.substring(7);
-            final String username = jwtService.extractClaim(jwt, "sub");
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-            if (username == null || authentication != null) {
+            if (authentication != null || idToken == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
+            
+            final String email = jwtService.extractClaim(idToken, "email");
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
 
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                    userDetails,
-                    null,
-                    userDetails.getAuthorities()    
-                );
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+            if (!jwtService.isTokenValid(idToken, userDetails)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Invalid or expired token");
+                response.getWriter().flush();
+                return;
             }
 
-            filterChain.doFilter(request, response);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+            );
+            SecurityContextHolder.getContext().setAuthentication(authToken);
 
+            filterChain.doFilter(request, response);
         } catch (Exception exception) {
             handlerExceptionResolver.resolveException(request, response, null, exception);
         }

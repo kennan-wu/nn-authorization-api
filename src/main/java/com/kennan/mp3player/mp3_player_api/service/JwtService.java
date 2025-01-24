@@ -1,8 +1,10 @@
 package com.kennan.mp3player.mp3_player_api.service;
 
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -32,10 +34,18 @@ public class JwtService {
 
     private final NimbusJwtDecoder googleJwtDecoder;
     private final NimbusJwtDecoder jwtDecoder;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public JwtService(NimbusJwtDecoder googleJwtDecoder, NimbusJwtDecoder jwtDecoder) {
+    private static String BLACK_LIST_PREFIX = "blacklisted:";
+
+    public JwtService(
+        NimbusJwtDecoder googleJwtDecoder, 
+        NimbusJwtDecoder jwtDecoder, 
+        RedisTemplate<String, String> redisTemplate
+    ) {
         this.googleJwtDecoder = googleJwtDecoder;
         this.jwtDecoder = jwtDecoder;
+        this.redisTemplate = redisTemplate;
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -94,6 +104,9 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
+        if (isTokenBlacklisted(token)) {
+            return false;
+        }
         try {
             Jwt jwt = decodeToken(token);
             String username = jwt.getClaim("sub");
@@ -109,5 +122,27 @@ public class JwtService {
 
     protected Date getCurrentDate() {
         return new Date();
+    }
+
+    public String blacklistToken(String token) {
+        Jwt jwt = decodeToken(token);
+
+        long expirationSeconds = jwt.getExpiresAt().toEpochMilli() / 1000;
+        long currentTimeSeconds = System.currentTimeMillis() / 1000;
+        long ttlSeconds = expirationSeconds - currentTimeSeconds;
+
+        if (ttlSeconds > 0) {
+            String key = BLACK_LIST_PREFIX + token;
+            redisTemplate.opsForValue().set(key, token);
+            redisTemplate.expire(key, ttlSeconds, TimeUnit.SECONDS);
+        } else {
+            throw new IllegalArgumentException("JWT is already expired and cannot be blacklisted.");
+        }
+        return token;
+    }
+
+    private boolean isTokenBlacklisted(String token) {
+        String key = BLACK_LIST_PREFIX + token;
+        return redisTemplate.hasKey(key);
     }
 }
