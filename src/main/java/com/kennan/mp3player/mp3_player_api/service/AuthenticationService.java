@@ -5,13 +5,17 @@ import org.springframework.stereotype.Service;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
+import com.kennan.mp3player.mp3_player_api.exceptions.ExistingEmailException;
 import com.kennan.mp3player.mp3_player_api.model.User;
 import com.kennan.mp3player.mp3_player_api.repository.UserRepository;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class AuthenticationService {
+
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -24,17 +28,19 @@ public class AuthenticationService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
-        }
+    }
 
     public User signup(RegisterUserDTO input) {
         if (userRepository.existsByEmail(input.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new ExistingEmailException();
         }
-
-        User user = new User();
-        user.setEmail(input.getEmail());
-        user.setUsername(input.getUsername());
-        user.setPassword(passwordEncoder.encode(input.getPassword()));
+        
+        User user = User.builder()
+            .email(input.getEmail())
+            .name(input.getUsername())
+            .password(passwordEncoder.encode(input.getPassword()))
+            .provider(input.getProvider())
+            .build();
 
         return userRepository.save(user);
     }
@@ -50,4 +56,5 @@ public class AuthenticationService {
         return userRepository.findByEmail(input.getEmail())
             .orElseThrow();
     }
+    
 }

@@ -10,7 +10,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +55,7 @@ public class AuthenticationServiceTest {
 
         com.kennan.mp3player.mp3_player_api.model.User savedUser = new User();
         savedUser.setEmail("test@example.com");
-        savedUser.setUsername("testUser");
+        savedUser.setName("testUser");
         savedUser.setPassword("encodedPassword");
 
         when(passwordEncoderMock.encode("rawPassword")).thenReturn("encodedPassword");
@@ -78,7 +77,7 @@ public class AuthenticationServiceTest {
 
         User returnedUser = new User();
         returnedUser.setEmail("test@example.com");
-        returnedUser.setUsername("testUser");
+        returnedUser.setName("testUser");
         returnedUser.setPassword("encodedPassword");
 
         when(userRepositoryMock.findByEmail(input.getEmail())).thenReturn(Optional.of(returnedUser));

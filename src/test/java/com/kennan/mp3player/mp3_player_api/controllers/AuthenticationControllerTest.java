@@ -12,8 +12,6 @@ import java.util.NoSuchElementException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.Spy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,18 +19,25 @@ import org.springframework.http.ResponseEntity;
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
 import com.kennan.mp3player.mp3_player_api.model.User;
-import com.kennan.mp3player.mp3_player_api.responses.LoginResponse;
 import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
+import com.kennan.mp3player.mp3_player_api.service.OAuthService;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @SpringBootTest
 public class AuthenticationControllerTest {
-    @Spy
-    @Autowired
-    private JwtService jwtServiceSpy;
+    @Mock
+    private JwtService jwtServiceMock;
 
     @Mock 
     private AuthenticationService authenticationServiceMock;
+
+    @Mock
+    private OAuthService oAuthServiceMock;
+
+    @Mock
+    private HttpServletResponse httpServletResponseMock;
 
     private AuthenticationController authenticationController;
     private RegisterUserDTO registerUserDTO;
@@ -42,8 +47,9 @@ public class AuthenticationControllerTest {
     @BeforeEach
     void setUp() {
         authenticationController = new AuthenticationController(
-            jwtServiceSpy, 
-            authenticationServiceMock
+            jwtServiceMock, 
+            authenticationServiceMock,
+            oAuthServiceMock
         );
         registerUserDTO = new RegisterUserDTO();
         registerUserDTO.setEmail("test@example.com");
@@ -54,7 +60,11 @@ public class AuthenticationControllerTest {
         loginUserDTO.setEmail("test@example.com");
         loginUserDTO.setPassword("password");
 
-        testUser = new User("1", "testUser", "test@example.com", "password");
+        testUser = User.builder()
+            .email("test@example.com")
+            .name("testUser")
+            .password("password")
+            .build();
     }
 
     @Test
@@ -82,16 +92,11 @@ public class AuthenticationControllerTest {
     void testLoginExistingUserReturnsOk() {
         when(authenticationServiceMock.authenticate(loginUserDTO)).thenReturn(testUser);
 
-        ResponseEntity<LoginResponse> response = authenticationController.authenticate(loginUserDTO);
+        ResponseEntity<User> response = authenticationController.authenticate(loginUserDTO, httpServletResponseMock);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-
-        @SuppressWarnings("null")
-        String token = response.getBody().getToken();
-        assertNotNull(token);
-        assertEquals("testUser", jwtServiceSpy.extractUsername(token));
     }
 
     @Test
@@ -99,7 +104,7 @@ public class AuthenticationControllerTest {
         when(authenticationServiceMock.authenticate(loginUserDTO)).thenThrow(NoSuchElementException.class);
 
         assertThrows(NoSuchElementException.class, () -> {
-            authenticationController.authenticate(loginUserDTO);
+            authenticationController.authenticate(loginUserDTO, httpServletResponseMock);
         });
     }
 }
