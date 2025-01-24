@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
+import com.kennan.mp3player.mp3_player_api.exceptions.ExistingEmailException;
 import com.kennan.mp3player.mp3_player_api.model.User;
 import com.kennan.mp3player.mp3_player_api.repository.UserRepository;
 
@@ -31,7 +32,7 @@ public class AuthenticationService {
 
     public User signup(RegisterUserDTO input) {
         if (userRepository.existsByEmail(input.getEmail())) {
-            throw new IllegalArgumentException("Email is already in use");
+            throw new ExistingEmailException();
         }
         
         User user = User.builder()

@@ -16,6 +16,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
+import com.kennan.mp3player.mp3_player_api.exceptions.ExistingEmailException;
 import com.kennan.mp3player.mp3_player_api.model.User;
 import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 import com.kennan.mp3player.mp3_player_api.service.CookieService;
@@ -98,8 +99,12 @@ public class AuthenticationController {
             username,
             issuer
         );
-        authenticationService.signup(input);
-
-        response.sendRedirect(redirect);
+        try {
+            authenticationService.signup(input);
+        } catch (ExistingEmailException exception) {
+            System.out.println("User already exists: " + input.getEmail());
+        } finally {
+            response.sendRedirect(redirect);
+        }
     }
 }

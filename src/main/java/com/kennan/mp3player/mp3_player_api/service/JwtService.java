@@ -1,5 +1,7 @@
 package com.kennan.mp3player.mp3_player_api.service;
 
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -41,6 +43,8 @@ public class JwtService {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .subject(userDetails.getUsername())
                 .claim("email", userDetails.getUsername())
+                .expirationTime(new Date(System.currentTimeMillis() + jwtExpiration))
+                .issueTime(new Date(System.currentTimeMillis()))
                 .issuer(defaultIssuer)
                 .build();
 
@@ -84,13 +88,26 @@ public class JwtService {
         return jwt.getClaim(claim).toString();
     }
 
+    public Date extractExpiration(String token) {
+        Jwt jwt = decodeToken(token);
+        return Date.from(jwt.getExpiresAt());
+    }
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             Jwt jwt = decodeToken(token);
             String username = jwt.getClaim("sub");
-            return username.equals(userDetails.getUsername());
+            return !isTokenExpired(token) && username.equals(userDetails.getUsername());
         } catch(Exception exception) {
             return false;
         }
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(getCurrentDate());
+    }
+
+    protected Date getCurrentDate() {
+        return new Date();
     }
 }

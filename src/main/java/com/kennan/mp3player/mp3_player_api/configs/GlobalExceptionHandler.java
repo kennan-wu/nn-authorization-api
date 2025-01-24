@@ -7,12 +7,20 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.kennan.mp3player.mp3_player_api.exceptions.ExistingEmailException;
 import com.mongodb.DuplicateKeyException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) {
+        return ResponseEntity
+            .status(HttpStatus.CONFLICT)
+            .body(exception.getMessage());
+    }
+
+    @ExceptionHandler(ExistingEmailException.class)
+    public ResponseEntity<String> handleExistingEmailException(ExistingEmailException exception) {
         return ResponseEntity
             .status(HttpStatus.CONFLICT)
             .body(exception.getMessage());
