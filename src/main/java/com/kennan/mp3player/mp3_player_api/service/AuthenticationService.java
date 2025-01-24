@@ -7,11 +7,14 @@ import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
 import com.kennan.mp3player.mp3_player_api.model.User;
 import com.kennan.mp3player.mp3_player_api.repository.UserRepository;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
 public class AuthenticationService {
+
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -24,7 +27,7 @@ public class AuthenticationService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
-        }
+    }
 
     public User signup(RegisterUserDTO input) {
         if (userRepository.existsByEmail(input.getEmail())) {
@@ -35,8 +38,7 @@ public class AuthenticationService {
             .email(input.getEmail())
             .username(input.getUsername())
             .password(passwordEncoder.encode(input.getPassword()))
-            .oauthProvider(input.getOauthProvider())
-            .oauthId(input.getOauthId())
+            .provider(input.getProvider())
             .build();
 
         return userRepository.save(user);
@@ -53,4 +55,5 @@ public class AuthenticationService {
         return userRepository.findByEmail(input.getEmail())
             .orElseThrow();
     }
+    
 }

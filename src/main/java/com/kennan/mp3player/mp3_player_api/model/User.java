@@ -31,9 +31,7 @@ public class User implements UserDetails{
     private String password;
 
     @Builder.Default
-    private String oauthProvider = null;
-    @Builder.Default
-    private String oauthId = null;
+    private String provider = null;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
