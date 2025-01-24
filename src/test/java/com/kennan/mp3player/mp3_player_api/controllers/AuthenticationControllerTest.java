@@ -22,10 +22,11 @@
 // import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 // import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
 // import com.kennan.mp3player.mp3_player_api.model.User;
-// import com.kennan.mp3player.mp3_player_api.responses.LoginResponse;
 // import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 // import com.kennan.mp3player.mp3_player_api.service.JwtService;
 // import com.kennan.mp3player.mp3_player_api.service.OAuthService;
+
+// import jakarta.servlet.http.HttpServletResponse;
 
 // @SpringBootTest
 // @ContextConfiguration(classes = JwtDecoderConfigTest.class)
@@ -38,6 +39,9 @@
 
 //     @Mock
 //     private OAuthService oAuthServiceMock;
+
+//     @Mock
+//     private HttpServletResponse httpServletResponseMock;
 
 //     private AuthenticationController authenticationController;
 //     private RegisterUserDTO registerUserDTO;
@@ -62,7 +66,7 @@
 
 //         testUser = User.builder()
 //             .email("test@example.com")
-//             .username("testUser")
+//             .name("testUser")
 //             .password("password")
 //             .build();
 //     }
@@ -92,7 +96,7 @@
 //     void testLoginExistingUserReturnsOk() {
 //         when(authenticationServiceMock.authenticate(loginUserDTO)).thenReturn(testUser);
 
-//         ResponseEntity<LoginResponse> response = authenticationController.authenticate(loginUserDTO);
+//         ResponseEntity<User> response = authenticationController.authenticate(loginUserDTO, httpServletResponseMock);
 
 //         assertNotNull(response);
 //         assertEquals(HttpStatus.OK, response.getStatusCode());

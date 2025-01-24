@@ -24,8 +24,7 @@ public class User implements UserDetails{
     @Id
     private String id;
 
-    @Indexed(unique = true)
-    private String username;
+    private String name;
     @Indexed(unique = true)
     private String email;
     private String password;
@@ -36,6 +35,11 @@ public class User implements UserDetails{
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
     }
 
     @Override
