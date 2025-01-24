@@ -52,7 +52,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
 
         try {
             final String jwt = authHeader.substring(7);
-            final String username = jwtService.extractUsername(jwt);
+            final String username = jwtService.extractClaim(jwt, "sub");
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
