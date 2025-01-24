@@ -28,4 +28,14 @@ public class CookieService {
 
         response.addCookie(cookie);
     }
+
+    public static void removeHttpOnlyCookie(String cookieName, HttpServletResponse response) {
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+
+        response.addCookie(cookie);
+    }
 }
