@@ -39,10 +39,9 @@ public class JwtService {
     private static String BLACK_LIST_PREFIX = "blacklisted:";
 
     public JwtService(
-        NimbusJwtDecoder googleJwtDecoder, 
-        NimbusJwtDecoder jwtDecoder, 
-        RedisTemplate<String, String> redisTemplate
-    ) {
+            NimbusJwtDecoder googleJwtDecoder,
+            NimbusJwtDecoder jwtDecoder,
+            RedisTemplate<String, String> redisTemplate) {
         this.googleJwtDecoder = googleJwtDecoder;
         this.jwtDecoder = jwtDecoder;
         this.redisTemplate = redisTemplate;
@@ -51,22 +50,21 @@ public class JwtService {
     public String generateToken(UserDetails userDetails) {
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .subject(userDetails.getUsername())
-                .claim("email", userDetails.getUsername())
-                .expirationTime(new Date(System.currentTimeMillis() + jwtExpiration))
-                .issueTime(new Date(System.currentTimeMillis()))
-                .issuer(defaultIssuer)
-                .build();
+                    .subject(userDetails.getUsername())
+                    .claim("email", userDetails.getUsername())
+                    .expirationTime(new Date(System.currentTimeMillis() + jwtExpiration))
+                    .issueTime(new Date(System.currentTimeMillis()))
+                    .issuer(defaultIssuer)
+                    .build();
 
             SignedJWT signedJWT = new SignedJWT(
-                new JWSHeader(JWSAlgorithm.HS256), 
-                claims
-            );
+                    new JWSHeader(JWSAlgorithm.HS256),
+                    claims);
 
             JWSSigner signer = new MACSigner(secretKey);
             signedJWT.sign(signer);
             return signedJWT.serialize();
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             throw new JwtException("Failed to generate JWT:" + exception.getMessage());
         }
     }
@@ -80,7 +78,7 @@ public class JwtService {
         }
     }
 
-    private String extractIssuer(String token) {
+    public String extractIssuer(String token) {
         try {
             String[] parts = token.split("\\.");
             if (parts.length < 2) {
@@ -111,7 +109,7 @@ public class JwtService {
             Jwt jwt = decodeToken(token);
             String username = jwt.getClaim("sub");
             return !isTokenExpired(token) && username.equals(userDetails.getUsername());
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             return false;
         }
     }

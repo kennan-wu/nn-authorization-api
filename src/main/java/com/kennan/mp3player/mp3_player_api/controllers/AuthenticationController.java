@@ -21,6 +21,7 @@ import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 import com.kennan.mp3player.mp3_player_api.service.CookieService;
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
 import com.kennan.mp3player.mp3_player_api.service.OAuthService;
+import com.kennan.mp3player.mp3_player_api.service.RefreshTokenService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,15 +32,17 @@ public class AuthenticationController {
     private final JwtService jwtService;
     private final AuthenticationService authenticationService;
     private final OAuthService oAuthService;
+    private final RefreshTokenService refreshService;
 
     public AuthenticationController(
-        JwtService jwtService, 
-        AuthenticationService authenticationService,
-        OAuthService oAuthService
-    ) {
+            JwtService jwtService,
+            AuthenticationService authenticationService,
+            OAuthService oAuthService,
+            RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
         this.oAuthService = oAuthService;
+        this.refreshService = refreshTokenService;
     }
 
     @PostMapping("/signup")
@@ -67,16 +70,15 @@ public class AuthenticationController {
 
         String oAuthUri = oAuthService.buildOAuthUri(encodedState, withRefreshToken);
         return new RedirectView(oAuthUri);
-    } 
+    }
 
     @GetMapping("/oauth/callback")
-    public void handleOAuthCallback(@RequestParam String code, 
-                                    @RequestParam String state,
-                                    HttpServletRequest request,
-                                    HttpServletResponse response
-    ) throws IOException {
+    public void handleOAuthCallback(@RequestParam String code,
+            @RequestParam String state,
+            HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
         String redirect = oAuthService.validateState(state, request);
-        if (redirect == null){
+        if (redirect == null) {
             response.sendRedirect("/");
             return;
         }
@@ -93,11 +95,10 @@ public class AuthenticationController {
         String username = jwtService.extractClaim(idToken, "name");
         String issuer = jwtService.extractClaim(idToken, "iss");
         RegisterUserDTO input = new RegisterUserDTO(
-            email,
-            UUID.randomUUID().toString(),
-            username,
-            issuer
-        );
+                email,
+                UUID.randomUUID().toString(),
+                username,
+                issuer);
         try {
             authenticationService.signup(input);
         } catch (ExistingEmailException exception) {
@@ -105,5 +106,14 @@ public class AuthenticationController {
         } finally {
             response.sendRedirect(redirect);
         }
+    }
+
+    @GetMapping("/refresh")
+    public void refreshIdToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = CookieService.getCookieValue(request, "refresh_token");
+        String idToken = CookieService.getCookieValue(request, "id_token");
+
+        String newIdToken = refreshService.refreshIdToken(idToken, refreshToken);
+        CookieService.setHttpOnlyCookie(newIdToken, "id_token", response);
     }
 }

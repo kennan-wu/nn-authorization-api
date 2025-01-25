@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 import com.kennan.mp3player.mp3_player_api.service.CookieService;
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
 import com.kennan.mp3player.mp3_player_api.service.OAuthService;
@@ -13,20 +14,15 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class LogoutController {
-    private final JwtService jwtService;
+    private final AuthenticationService authenticationService;
 
-    public LogoutController(JwtService jwtService) {
-        this.jwtService = jwtService;
+    public LogoutController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
-        String idToken = CookieService.getCookieValue(request, "id_token");
-
-        jwtService.blacklistToken(idToken);
-
-        CookieService.removeHttpOnlyCookie("id_token", response);
-        CookieService.removeHttpOnlyCookie("refresh_token", response);
+        authenticationService.terminateSession(request, response, true);
 
         return ResponseEntity.ok("Logged out successfully");
     }
