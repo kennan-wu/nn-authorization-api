@@ -1,4 +1,5 @@
 package com.kennan.mp3player.mp3_player_api.model;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -20,7 +21,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User implements UserDetails{
+public class User implements UserDetails {
     @Id
     private String id;
 
@@ -31,6 +32,9 @@ public class User implements UserDetails{
 
     @Builder.Default
     private String provider = null;
+
+    @Builder.Default
+    private int refreshVersion = 0;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
