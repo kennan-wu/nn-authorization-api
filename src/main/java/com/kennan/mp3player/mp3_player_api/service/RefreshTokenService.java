@@ -46,14 +46,17 @@ public class RefreshTokenService {
     @Value("${google.token.url}")
     private String tokenUrl;
 
+    @Value("${google.token.revoke.url}")
+    private String revokeUrl;
+
     private final NimbusJwtDecoder refreshDecoder;
     private final JwtService jwtService;
     private final RestTemplate restTemplate;
     private final UserRepository userRepository;
 
-    public RefreshTokenService(NimbusJwtDecoder nimbusJwtDecoder, JwtService jwtService, RestTemplate restTemplate,
+    public RefreshTokenService(NimbusJwtDecoder refreshDecoder, JwtService jwtService, RestTemplate restTemplate,
             UserRepository userRepository) {
-        this.refreshDecoder = nimbusJwtDecoder;
+        this.refreshDecoder = refreshDecoder;
         this.jwtService = jwtService;
         this.restTemplate = restTemplate;
         this.userRepository = userRepository;
@@ -154,10 +157,27 @@ public class RefreshTokenService {
     }
 
     // needs google funct
-    public String blacklistToken(String token) {
+    public String blacklistToken(String idToken, String refreshToken) {
+        String issuer = jwtService.extractIssuer(idToken);
+        if ("https://accounts.google.com".equals(issuer)) {
+            return blacklistGoogleToken(refreshToken);
+        } else if (isTokenValid(refreshToken)) {
+            return blacklistCustomToken(refreshToken);
+        } else {
+            throw new RuntimeException("Invalid Refresh Token");
+        }
+    }
+
+    private String blacklistCustomToken(String token) {
         Jwt refresh = decodeToken(token);
         String email = refresh.getSubject();
         userRepository.incrementRefreshVersion(email);
+        return token;
+    }
+
+    private String blacklistGoogleToken(String token) {
+        String url = revokeUrl + "?token=" + token;
+        restTemplate.getForObject(url, String.class);
         return token;
     }
 }

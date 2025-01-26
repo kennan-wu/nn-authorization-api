@@ -22,6 +22,7 @@ import com.kennan.mp3player.mp3_player_api.model.User;
 import com.kennan.mp3player.mp3_player_api.service.AuthenticationService;
 import com.kennan.mp3player.mp3_player_api.service.JwtService;
 import com.kennan.mp3player.mp3_player_api.service.OAuthService;
+import com.kennan.mp3player.mp3_player_api.service.RefreshTokenService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -30,7 +31,7 @@ public class AuthenticationControllerTest {
     @Mock
     private JwtService jwtServiceMock;
 
-    @Mock 
+    @Mock
     private AuthenticationService authenticationServiceMock;
 
     @Mock
@@ -38,6 +39,9 @@ public class AuthenticationControllerTest {
 
     @Mock
     private HttpServletResponse httpServletResponseMock;
+
+    @Mock
+    private RefreshTokenService refreshTokenService;
 
     private AuthenticationController authenticationController;
     private RegisterUserDTO registerUserDTO;
@@ -47,10 +51,10 @@ public class AuthenticationControllerTest {
     @BeforeEach
     void setUp() {
         authenticationController = new AuthenticationController(
-            jwtServiceMock, 
-            authenticationServiceMock,
-            oAuthServiceMock
-        );
+                jwtServiceMock,
+                authenticationServiceMock,
+                oAuthServiceMock,
+                refreshTokenService);
         registerUserDTO = new RegisterUserDTO();
         registerUserDTO.setEmail("test@example.com");
         registerUserDTO.setPassword("password");
@@ -61,10 +65,10 @@ public class AuthenticationControllerTest {
         loginUserDTO.setPassword("password");
 
         testUser = User.builder()
-            .email("test@example.com")
-            .name("testUser")
-            .password("password")
-            .build();
+                .email("test@example.com")
+                .name("testUser")
+                .password("password")
+                .build();
     }
 
     @Test
