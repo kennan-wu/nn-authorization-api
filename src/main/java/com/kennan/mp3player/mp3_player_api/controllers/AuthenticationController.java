@@ -108,7 +108,7 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping("/refresh")
+    @PostMapping("/refresh")
     public void refreshIdToken(HttpServletRequest request, HttpServletResponse response) {
         String refreshToken = CookieService.getCookieValue(request, "refresh_token");
         String idToken = CookieService.getCookieValue(request, "id_token");

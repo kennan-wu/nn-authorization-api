@@ -69,7 +69,7 @@ public class AuthenticationService {
         jwtService.blacklistToken(idToken);
         if (terminateRefresh) {
             String refreshToken = CookieService.getCookieValue(request, "refresh_token");
-            refreshTokenService.blacklistToken(refreshToken);
+            refreshTokenService.blacklistToken(idToken, refreshToken);
         }
 
         CookieService.removeHttpOnlyCookie("id_token", response);

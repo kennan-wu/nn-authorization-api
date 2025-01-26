@@ -35,15 +35,18 @@ public class AuthenticationServiceTest {
     private PasswordEncoder passwordEncoderMock;
 
     @Mock
-    AuthenticationManager authenticationManagerMock;
+    private AuthenticationManager authenticationManagerMock;
+
+    @Mock
+    private RefreshTokenService refreshTokenServiceMock;
+
+    @Mock
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
-        this.authenticationService = new AuthenticationService(
-            userRepositoryMock, 
-            passwordEncoderMock, 
-            authenticationManagerMock
-        );
+        this.authenticationService = new AuthenticationService(userRepositoryMock, passwordEncoderMock,
+                authenticationManagerMock, jwtService, refreshTokenServiceMock);
     }
 
     @Test
@@ -88,9 +91,9 @@ public class AuthenticationServiceTest {
         assertEquals(returnedUser, result);
 
         verify(authenticationManagerMock, times(1))
-            .authenticate(any(UsernamePasswordAuthenticationToken.class));
+                .authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepositoryMock, times(1))
-            .findByEmail("test@example.com");
+                .findByEmail("test@example.com");
     }
 
     @Test
@@ -105,8 +108,8 @@ public class AuthenticationServiceTest {
         });
 
         verify(authenticationManagerMock, times(1))
-            .authenticate(any(UsernamePasswordAuthenticationToken.class));
+                .authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userRepositoryMock, times(1))
-            .findByEmail("test@example.com");
+                .findByEmail("test@example.com");
     }
 }
