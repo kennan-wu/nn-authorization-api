@@ -57,7 +57,9 @@ public class AuthenticationController {
         User authenticatedUser = authenticationService.authenticate(loginUserDTO);
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
+        String refreshToken = refreshService.generateToken(authenticatedUser);
         CookieService.setHttpOnlyCookie(jwtToken, "id_token", response);
+        CookieService.setHttpOnlyCookie(refreshToken, "refresh_token", response);
 
         return ResponseEntity.ok(authenticatedUser);
     }

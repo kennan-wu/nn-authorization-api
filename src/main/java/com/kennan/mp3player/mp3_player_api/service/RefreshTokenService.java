@@ -65,7 +65,6 @@ public class RefreshTokenService {
     public String generateToken(User user) {
         try {
             JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                    .subject(user.getUsername())
                     .claim("type", "refresh")
                     .claim("version", user.getRefreshVersion())
                     .issueTime(new Date(System.currentTimeMillis()))
@@ -89,11 +88,11 @@ public class RefreshTokenService {
     }
 
     // validate token
-    private boolean isTokenValid(String token) {
-        Jwt refresh = decodeToken(token);
-        int refreshVersion = refresh.getClaim("version");
+    private boolean isTokenValid(String idToken, String refreshToken) {
+        Jwt refresh = decodeToken(refreshToken);
+        int refreshVersion = Math.toIntExact(refresh.getClaim("version"));
 
-        String email = refresh.getSubject();
+        String email = jwtService.extractClaim(idToken, "email");
         try {
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
             if (user.getRefreshVersion() != refreshVersion) {
@@ -108,19 +107,18 @@ public class RefreshTokenService {
 
     public String refreshIdToken(String idToken, String refreshToken) {
         String issuer = jwtService.extractIssuer(idToken);
+        jwtService.blacklistToken(idToken);
         if ("https://accounts.google.com".equals(issuer)) {
             return refreshGoogleToken(refreshToken);
-        } else if (isTokenValid(refreshToken)) {
-            return refreshCustomIdToken(refreshToken);
+        } else if (isTokenValid(idToken, refreshToken)) {
+            UserDetails user = User.builder().email(jwtService.extractClaim(idToken, "email")).build();
+            return refreshCustomIdToken(user);
         } else {
             throw new RuntimeException("Invalid Refresh Token");
         }
     }
 
-    private String refreshCustomIdToken(String token) {
-        Jwt refresh = decodeToken(token);
-        UserDetails user = User.builder()
-                .email(refresh.getClaim("email")).build();
+    private String refreshCustomIdToken(UserDetails user) {
         return jwtService.generateToken(user);
     }
 
@@ -156,21 +154,20 @@ public class RefreshTokenService {
         }
     }
 
-    // needs google funct
     public String blacklistToken(String idToken, String refreshToken) {
         String issuer = jwtService.extractIssuer(idToken);
         if ("https://accounts.google.com".equals(issuer)) {
             return blacklistGoogleToken(refreshToken);
-        } else if (isTokenValid(refreshToken)) {
-            return blacklistCustomToken(refreshToken);
+        } else if (isTokenValid(idToken, refreshToken)) {
+            UserDetails user = User.builder().email(jwtService.extractClaim(idToken, "email")).build();
+            return blacklistCustomToken(user, idToken);
         } else {
             throw new RuntimeException("Invalid Refresh Token");
         }
     }
 
-    private String blacklistCustomToken(String token) {
-        Jwt refresh = decodeToken(token);
-        String email = refresh.getSubject();
+    private String blacklistCustomToken(UserDetails user, String token) {
+        String email = user.getUsername();
         userRepository.incrementRefreshVersion(email);
         return token;
     }
