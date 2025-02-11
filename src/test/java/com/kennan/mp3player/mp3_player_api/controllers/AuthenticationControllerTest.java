@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
@@ -43,6 +44,9 @@ public class AuthenticationControllerTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
+    @Mock
+    private UserDetailsService userDetailsService;
+
     private AuthenticationController authenticationController;
     private RegisterUserDTO registerUserDTO;
     private LoginUserDTO loginUserDTO;
@@ -54,7 +58,8 @@ public class AuthenticationControllerTest {
                 jwtServiceMock,
                 authenticationServiceMock,
                 oAuthServiceMock,
-                refreshTokenService);
+                refreshTokenService,
+                userDetailsService);
         registerUserDTO = new RegisterUserDTO();
         registerUserDTO.setEmail("test@example.com");
         registerUserDTO.setPassword("password");
