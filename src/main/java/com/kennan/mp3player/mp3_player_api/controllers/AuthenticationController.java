@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,16 +36,19 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final OAuthService oAuthService;
     private final RefreshTokenService refreshService;
+    private final UserDetailsService userDetailsService;
 
     public AuthenticationController(
             JwtService jwtService,
             AuthenticationService authenticationService,
             OAuthService oAuthService,
-            RefreshTokenService refreshTokenService) {
+            RefreshTokenService refreshTokenService,
+            UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
         this.oAuthService = oAuthService;
         this.refreshService = refreshTokenService;
+        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/signup")
@@ -117,5 +123,20 @@ public class AuthenticationController {
 
         String newIdToken = refreshService.refreshIdToken(idToken, refreshToken);
         CookieService.setHttpOnlyCookie(newIdToken, "id_token", response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getUser(HttpServletRequest request) {
+        String idToken = CookieService.getCookieValue(request, "id_token");
+        try {
+            final String email = jwtService.extractClaim(idToken, "email");
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
+            if (!jwtService.isTokenValid(idToken, userDetails)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid");
+            }
+            return ResponseEntity.ok(userDetails);
+        } catch (Exception error) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid");
+        }
     }
 }
