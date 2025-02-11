@@ -21,6 +21,8 @@ public class CookieService {
 
     public static void setHttpOnlyCookie(String token, String cookieName, HttpServletResponse response) {
         Cookie cookie = new Cookie(cookieName, token);
+        cookie.setDomain("localhost");
+        cookie.setAttribute("sameSite", "none");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");

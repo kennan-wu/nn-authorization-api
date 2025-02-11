@@ -33,7 +33,7 @@ public class OAuthService {
 
     @Value("${google.oauth.url}")
     private String oauthUri;
-   
+
     @Value("${spring.security.oauth2.client.registration.google.scope}")
     private String scope;
 
@@ -43,14 +43,13 @@ public class OAuthService {
     private final RestTemplate restTemplate;
 
     public OAuthService(
-        RestTemplate restTemplate
-    ) {
+            RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 
     public String validateState(String encodedState, HttpServletRequest request) {
         String encodedCookieState = CookieService.getCookieValue(request, "state");
-        
+
         if (encodedCookieState == null || !encodedCookieState.equals(encodedState)) {
             return null;
         }
@@ -72,32 +71,38 @@ public class OAuthService {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>() {{
-            add("client_id", clientId);
-            add("client_secret", clientSecret);
-            add("grant_type", isRefresh ? "refresh_token" : "authorization_code");
-            add(isRefresh ? "refresh_token" : "code", grant);
-            if (!isRefresh) add("redirect_uri", redirectUri);
-        }};
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>() {
+            {
+                add("client_id", clientId);
+                add("client_secret", clientSecret);
+                add("grant_type", isRefresh ? "refresh_token" : "authorization_code");
+                add(isRefresh ? "refresh_token" : "code", grant);
+                if (!isRefresh)
+                    add("redirect_uri", redirectUri);
+            }
+        };
 
         ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-            tokenUrl,
-            HttpMethod.POST,
-            new HttpEntity<>(body, headers),
-            new ParameterizedTypeReference<>() {}
-        );
+                tokenUrl,
+                HttpMethod.POST,
+                new HttpEntity<>(body, headers),
+                new ParameterizedTypeReference<>() {
+                });
 
         Map<String, Object> responseBody = response.getBody();
-        if (responseBody == null) throw new IllegalStateException("Response body is null");
+        if (responseBody == null)
+            throw new IllegalStateException("Response body is null");
 
         return Map.of(
-            "id_token", (String) responseBody.get("id_token"),
-            "refresh_token", (String) responseBody.getOrDefault("refresh_token", "")
-        );
+                "id_token", (String) responseBody.get("id_token"),
+                "refresh_token", (String) responseBody.getOrDefault("refresh_token", ""));
     }
 
     public String generateState(HttpServletRequest request) {
-        String redirectTo = request.getHeader("Origin") == null ? "https://www.google.com/" : request.getHeader("Origin");
+        String redirectTo = request.getHeader("Referer");
+        if (redirectTo == null) {
+            throw new IllegalArgumentException("Referer header not defined");
+        }
         String secureState = UUID.randomUUID().toString();
         String statePayload = "{\"state\": \"" + secureState + "\", \"redirectTo\": \"" + redirectTo + "\"}";
         String encodedState = Base64.getEncoder().encodeToString(statePayload.getBytes());
@@ -106,12 +111,12 @@ public class OAuthService {
 
     public String buildOAuthUri(String state, boolean withRefreshToken) {
         return oauthUri + "?" +
-           "client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8) + "&" +
-           "redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) + "&" +
-           "response_type=code&" +
-           "scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8) + "&" +
-           "state=" + URLEncoder.encode(state, StandardCharsets.UTF_8) + "&" +
-           "access_type=offline" +
-           (withRefreshToken ? "&prompt=consent" : "");
+                "client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8) + "&" +
+                "redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8) + "&" +
+                "response_type=code&" +
+                "scope=" + URLEncoder.encode(scope, StandardCharsets.UTF_8) + "&" +
+                "state=" + URLEncoder.encode(state, StandardCharsets.UTF_8) + "&" +
+                "access_type=offline" +
+                (withRefreshToken ? "&prompt=consent" : "");
     }
 }

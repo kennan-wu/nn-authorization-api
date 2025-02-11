@@ -1,20 +1,18 @@
 package com.kennan.mp3player.mp3_player_api.controllers;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
@@ -36,19 +34,16 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final OAuthService oAuthService;
     private final RefreshTokenService refreshService;
-    private final UserDetailsService userDetailsService;
 
     public AuthenticationController(
             JwtService jwtService,
             AuthenticationService authenticationService,
             OAuthService oAuthService,
-            RefreshTokenService refreshTokenService,
-            UserDetailsService userDetailsService) {
+            RefreshTokenService refreshTokenService) {
         this.jwtService = jwtService;
         this.authenticationService = authenticationService;
         this.oAuthService = oAuthService;
         this.refreshService = refreshTokenService;
-        this.userDetailsService = userDetailsService;
     }
 
     @PostMapping("/signup")
@@ -71,13 +66,17 @@ public class AuthenticationController {
     }
 
     @GetMapping("/oauth/authorize")
-    public RedirectView redirectToOAuthProvider(HttpServletRequest request, HttpServletResponse response) {
-        boolean withRefreshToken = request.getParameter("refresh") != null;
-        String encodedState = oAuthService.generateState(request);
-        CookieService.setHttpOnlyCookie(encodedState, "state", response);
+    public ResponseEntity<?> redirectToOAuthProvider(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            boolean withRefreshToken = request.getParameter("refresh") != null;
+            String encodedState = oAuthService.generateState(request);
+            CookieService.setHttpOnlyCookie(encodedState, "state", response);
 
-        String oAuthUri = oAuthService.buildOAuthUri(encodedState, withRefreshToken);
-        return new RedirectView(oAuthUri);
+            String oAuthUri = oAuthService.buildOAuthUri(encodedState, withRefreshToken);
+            return ResponseEntity.status(HttpStatus.FOUND).location(URI.create(oAuthUri)).build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("OAuth authorization failed: " + e.getMessage());
+        }
     }
 
     @GetMapping("/oauth/callback")
@@ -123,20 +122,5 @@ public class AuthenticationController {
 
         String newIdToken = refreshService.refreshIdToken(idToken, refreshToken);
         CookieService.setHttpOnlyCookie(newIdToken, "id_token", response);
-    }
-
-    @GetMapping("/me")
-    public ResponseEntity<?> getUser(HttpServletRequest request) {
-        String idToken = CookieService.getCookieValue(request, "id_token");
-        try {
-            final String email = jwtService.extractClaim(idToken, "email");
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-            if (!jwtService.isTokenValid(idToken, userDetails)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid");
-            }
-            return ResponseEntity.ok(userDetails);
-        } catch (Exception error) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token is invalid");
-        }
     }
 }
