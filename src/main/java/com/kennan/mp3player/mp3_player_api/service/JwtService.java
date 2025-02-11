@@ -107,7 +107,7 @@ public class JwtService {
         }
         try {
             Jwt jwt = decodeToken(token);
-            String username = jwt.getClaim("sub");
+            String username = jwt.getClaim("email");
             return !isTokenExpired(token) && username.equals(userDetails.getUsername());
         } catch (Exception exception) {
             return false;
