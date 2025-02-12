@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @Service
@@ -59,7 +60,7 @@ public class AuthenticationService {
                         input.getPassword()));
 
         return userRepository.findByEmail(input.getEmail())
-                .orElseThrow();
+                .orElseThrow(() -> new BadCredentialsException("Invalid username or password"));
     }
 
     public void terminateSession(HttpServletRequest request, HttpServletResponse response, boolean terminateRefresh) {

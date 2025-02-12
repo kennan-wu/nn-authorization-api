@@ -54,13 +54,17 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> authenticate(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse response) {
+    public ResponseEntity<User> authenticate(@RequestBody LoginUserDTO loginUserDTO, HttpServletResponse response,
+            HttpServletRequest request) {
         User authenticatedUser = authenticationService.authenticate(loginUserDTO);
+        boolean withRefreshToken = request.getParameter("refresh") != null;
 
         String jwtToken = jwtService.generateToken(authenticatedUser);
-        String refreshToken = refreshService.generateToken(authenticatedUser);
+        if (withRefreshToken) {
+            String refreshToken = refreshService.generateToken(authenticatedUser);
+            CookieService.setHttpOnlyCookie(refreshToken, "refresh_token", response);
+        }
         CookieService.setHttpOnlyCookie(jwtToken, "id_token", response);
-        CookieService.setHttpOnlyCookie(refreshToken, "refresh_token", response);
 
         return ResponseEntity.ok(authenticatedUser);
     }
