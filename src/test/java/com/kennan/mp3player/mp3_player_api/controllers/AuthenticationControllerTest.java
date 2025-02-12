@@ -44,9 +44,6 @@ public class AuthenticationControllerTest {
     @Mock
     private RefreshTokenService refreshTokenService;
 
-    @Mock
-    private UserDetailsService userDetailsService;
-
     private AuthenticationController authenticationController;
     private RegisterUserDTO registerUserDTO;
     private LoginUserDTO loginUserDTO;
@@ -58,8 +55,7 @@ public class AuthenticationControllerTest {
                 jwtServiceMock,
                 authenticationServiceMock,
                 oAuthServiceMock,
-                refreshTokenService,
-                userDetailsService);
+                refreshTokenService);
         registerUserDTO = new RegisterUserDTO();
         registerUserDTO.setEmail("test@example.com");
         registerUserDTO.setPassword("password");

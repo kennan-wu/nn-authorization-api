@@ -33,10 +33,9 @@ public class JwtDecoderConfigTest {
 
     @Bean
     public JwtService jwtService(
-        NimbusJwtDecoder mockGoogleJwtDecoder, 
-        NimbusJwtDecoder jwtDecoder, 
-        RedisTemplate<String, String> redisTemplate
-    ) {
+            NimbusJwtDecoder mockGoogleJwtDecoder,
+            NimbusJwtDecoder jwtDecoder,
+            RedisTemplate<String, String> redisTemplate) {
         return new JwtService(mockGoogleJwtDecoder, jwtDecoder, redisTemplate);
     }
 }
