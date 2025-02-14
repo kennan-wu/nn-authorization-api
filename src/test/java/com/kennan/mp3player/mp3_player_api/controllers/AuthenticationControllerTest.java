@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import com.kennan.mp3player.mp3_player_api.dto.LoginUserDTO;
 import com.kennan.mp3player.mp3_player_api.dto.RegisterUserDTO;
@@ -25,6 +24,7 @@ import com.kennan.mp3player.mp3_player_api.service.JwtService;
 import com.kennan.mp3player.mp3_player_api.service.OAuthService;
 import com.kennan.mp3player.mp3_player_api.service.RefreshTokenService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @SpringBootTest
@@ -40,6 +40,9 @@ public class AuthenticationControllerTest {
 
     @Mock
     private HttpServletResponse httpServletResponseMock;
+
+    @Mock
+    private HttpServletRequest httpServletRequestMock;
 
     @Mock
     private RefreshTokenService refreshTokenService;
@@ -97,7 +100,8 @@ public class AuthenticationControllerTest {
     void testLoginExistingUserReturnsOk() {
         when(authenticationServiceMock.authenticate(loginUserDTO)).thenReturn(testUser);
 
-        ResponseEntity<User> response = authenticationController.authenticate(loginUserDTO, httpServletResponseMock);
+        ResponseEntity<User> response = authenticationController.authenticate(loginUserDTO, httpServletResponseMock,
+                httpServletRequestMock);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -109,7 +113,7 @@ public class AuthenticationControllerTest {
         when(authenticationServiceMock.authenticate(loginUserDTO)).thenThrow(NoSuchElementException.class);
 
         assertThrows(NoSuchElementException.class, () -> {
-            authenticationController.authenticate(loginUserDTO, httpServletResponseMock);
+            authenticationController.authenticate(loginUserDTO, httpServletResponseMock, httpServletRequestMock);
         });
     }
 }
