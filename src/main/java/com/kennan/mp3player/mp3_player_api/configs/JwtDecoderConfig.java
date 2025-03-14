@@ -11,10 +11,18 @@ public class JwtDecoderConfig {
     @Value("${jwt.secret.key}")
     private String jwtSecret;
 
+    @Value("${refresh.secret.key}")
+    private String refreshSecret;
+
     private final JwtDecoderFactory jwtDecoderFactory;
 
     public JwtDecoderConfig(JwtDecoderFactory jwtDecoderFactory) {
         this.jwtDecoderFactory = jwtDecoderFactory;
+    }
+
+    @Bean
+    public NimbusJwtDecoder refreshDecoder() {
+        return jwtDecoderFactory.withSecretKey(refreshSecret);
     }
 
     @Bean
@@ -29,6 +37,7 @@ public class JwtDecoderConfig {
 
     // @Bean
     // public NimbusJwtDecoder githubJwtDecoder() {
-    //     return jwtDecoderFactory.createDecoder("https://github.com/login/oauth/certs");
+    // return
+    // jwtDecoderFactory.createDecoder("https://github.com/login/oauth/certs");
     // }
 }

@@ -21,10 +21,22 @@ public class CookieService {
 
     public static void setHttpOnlyCookie(String token, String cookieName, HttpServletResponse response) {
         Cookie cookie = new Cookie(cookieName, token);
+        cookie.setDomain("localhost");
+        cookie.setAttribute("sameSite", "none");
         cookie.setHttpOnly(true);
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(3600);
+
+        response.addCookie(cookie);
+    }
+
+    public static void removeHttpOnlyCookie(String cookieName, HttpServletResponse response) {
+        Cookie cookie = new Cookie(cookieName, "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
 
         response.addCookie(cookie);
     }
